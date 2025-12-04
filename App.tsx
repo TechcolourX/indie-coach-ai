@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { GoogleGenAI, Part, Content } from '@google/genai';
 import { type Message, Role, type ChatSession, type User, AppPart, TextPart, FilePart } from './types.ts';
