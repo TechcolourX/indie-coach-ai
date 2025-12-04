@@ -1,4 +1,3 @@
-
 import React, { ErrorInfo, ReactNode } from 'react';
 import { WarningIcon } from './icons/WarningIcon.tsx';
 
@@ -12,10 +11,14 @@ interface State {
 }
 
 class ErrorBoundary extends React.Component<Props, State> {
-  public state: State = {
-    hasError: false,
-    error: null,
-  };
+  // Fix: Reverted to using a constructor for state initialization. The class property syntax, while modern, was causing type inference issues with `this.props` in this environment.
+  constructor(props: Props) {
+    super(props);
+    this.state = {
+      hasError: false,
+      error: null,
+    };
+  }
 
   static getDerivedStateFromError(error: Error): State {
     return { hasError: true, error };
@@ -25,10 +28,10 @@ class ErrorBoundary extends React.Component<Props, State> {
     console.error("Uncaught error:", error, errorInfo);
   }
 
-  public render(): React.ReactNode {
+  render(): React.ReactNode {
     if (this.state.hasError) {
       const errorMessage = this.state.error?.toString() || "An unknown error occurred.";
-      const isApiKeyError = errorMessage.includes("[GoogleGenerativeAI Error]: API key not found");
+      const isApiKeyError = errorMessage.includes("API key not found") || errorMessage.includes("API key is missing");
 
       return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-background text-foreground p-6">

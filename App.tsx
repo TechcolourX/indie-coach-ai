@@ -1,6 +1,4 @@
-
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { GoogleGenAI, Part, Content } from '@google/genai';
 import { type Message, Role, type ChatSession, type User, AppPart, TextPart, FilePart } from './types.ts';
 import { SYSTEM_INSTRUCTION, TOPIC_SUGGESTIONS, TOOL_SUGGESTIONS, ALL_ABOUT_MUSIC_BUSINESS_SUMMARY } from './constants.tsx';
 import Header from './components/Header.tsx';
@@ -20,15 +18,6 @@ import BookSummaryCard from './components/BookSummaryCard.tsx';
 
 const RECOVERY_SESSION_KEY = 'indie-coach-recovery-data';
 
-// Helper function to get the API key from Vite's environment variables.
-const getApiKey = (): string => {
-  const apiKey = import.meta.env.VITE_API_KEY;
-  if (!apiKey) {
-    throw new Error("[GoogleGenerativeAI Error]: API key not found. Please set VITE_API_KEY in your environment configuration.");
-  }
-  return apiKey;
-};
-
 // Helper function to convert a File to a Base64 string
 const fileToBase64 = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -41,24 +30,6 @@ const fileToBase64 = (file: File): Promise<string> => {
         };
         reader.onerror = (error) => reject(error);
     });
-};
-
-// Helper to convert internal AppPart[] to SDK-compatible Part[]
-const appPartsToApiParts = (parts: AppPart[]): Part[] => {
-    return parts.map(part => {
-        if (part.type === 'text') {
-            return { text: part.text };
-        }
-        return { inlineData: { mimeType: part.file.mimeType, data: part.file.data }};
-    });
-};
-
-// Helper to convert the app's message history to the SDK's Content[] format
-const appMessagesToApiContents = (messages: Message[]): Content[] => {
-    return messages.map(msg => ({
-        role: msg.role,
-        parts: appPartsToApiParts(msg.parts)
-    }));
 };
 
 const App: React.FC = () => {
@@ -265,41 +236,44 @@ const App: React.FC = () => {
     }
 
     try {
-      const apiKey = getApiKey();
-      const ai = new GoogleGenAI({ apiKey });
-      
       const messagesForApi = [...currentMessages];
-
       if (isBookSummaryPrompt) {
           messagesForApi.unshift({ role: Role.User, parts: [{ type: 'text', text: `Use the following book summary to answer my question:\n\n${ALL_ABOUT_MUSIC_BUSINESS_SUMMARY}` }], timestamp: Date.now() });
           messagesForApi.unshift({ role: Role.AI, parts: [{ type: 'text', text: "Got it. I'll use the summary to answer. What's your question?" }], timestamp: Date.now() });
       }
 
-      const contents = appMessagesToApiContents(messagesForApi);
-
-      const stream = await ai.models.generateContentStream({
-          model: 'gemini-2.5-flash',
-          contents: contents,
-          config: { 
-            systemInstruction: SYSTEM_INSTRUCTION,
-          }
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: messagesForApi }),
       });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`API Error: ${response.statusText} - ${errorText}`);
+      }
       
+      if (!response.body) return;
+      
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
       let fullResponseText = '';
-      for await (const chunk of stream) {
-        const chunkText = chunk.text;
-        if(chunkText) {
-          fullResponseText += chunkText;
-          setMessages(prev => {
-              const newMessages = [...prev];
-              const lastMessage = newMessages[newMessages.length - 1];
-              if(lastMessage.role === Role.AI) {
-                  const cleanedText = fullResponseText.replace(/\[SUGGESTIONS\].*?/, '');
-                  lastMessage.parts = [{ type: 'text', text: cleanedText }];
-              }
-              return newMessages;
-          });
-        }
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunkText = decoder.decode(value, { stream: true });
+        fullResponseText += chunkText;
+        setMessages(prev => {
+            const newMessages = [...prev];
+            const lastMessage = newMessages[newMessages.length - 1];
+            if(lastMessage.role === Role.AI) {
+                const cleanedText = fullResponseText.replace(/\[SUGGESTIONS\].*?/, '');
+                lastMessage.parts = [{ type: 'text', text: cleanedText }];
+            }
+            return newMessages;
+        });
       }
       
       const suggestionRegex = /\[SUGGESTIONS\](.*?)\[\/SUGGESTIONS\]/;

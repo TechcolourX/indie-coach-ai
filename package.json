@@ -1,5 +1,5 @@
 {
-  "name": "indie-coach",
+  "name": "indie-coach-app",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -14,9 +14,11 @@
     "@google/genai": "^1.30.0"
   },
   "devDependencies": {
-    "@types/node": "^22.14.0",
-    "@vitejs/plugin-react": "^5.0.0",
-    "typescript": "~5.8.2",
-    "vite": "^6.2.0"
+    "@types/react": "^18.2.37",
+    "@types/react-dom": "^18.2.15",
+    "@vitejs/plugin-react": "^4.2.0",
+    "typescript": "^5.2.2",
+    "vite": "^5.0.0",
+    "@vercel/node": "^3.0.0"
   }
 }

@@ -1,6 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { CheckIcon } from './icons/CheckIcon.tsx';
-import { GoogleGenAI } from '@google/genai';
 import { SparklesIcon } from './icons/SparklesIcon.tsx';
 import { LoadingIcon } from './icons/LoadingIcon.tsx';
 
@@ -104,31 +102,23 @@ const VisualBrandingGuide: React.FC<VisualBrandingGuideProps> = ({ data }) => {
     `;
 
     try {
-        const apiKey = import.meta.env.VITE_API_KEY;
-        if (!apiKey) {
-            throw new Error("API key not found. Please set VITE_API_KEY in your environment.");
-        }
-        const ai = new GoogleGenAI({ apiKey });
-        const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash-image',
-            contents: { parts: [{ text: fullPrompt }] },
+        const response = await fetch('/api/generate-image', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ prompt: fullPrompt }),
         });
 
-        let imageFound = false;
-        if (response.candidates && response.candidates[0].content && response.candidates[0].content.parts) {
-            for (const part of response.candidates[0].content.parts) {
-                if (part.inlineData) {
-                    const base64EncodeString = part.inlineData.data;
-                    const imageUrl = `data:${part.inlineData.mimeType};base64,${base64EncodeString}`;
-                    setGeneratedImage(imageUrl);
-                    imageFound = true;
-                    break;
-                }
-            }
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`API Error: ${response.statusText} - ${errorText}`);
         }
+
+        const result = await response.json();
         
-        if (!imageFound) {
-             throw new Error("The AI did not return an image. Please try a different prompt.");
+        if (result.imageUrl) {
+            setGeneratedImage(result.imageUrl);
+        } else {
+             throw new Error(result.error || "The AI did not return an image. Please try a different prompt.");
         }
 
     } catch (error) {
