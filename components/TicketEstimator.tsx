@@ -26,6 +26,71 @@ const formatCurrency = (value: number) => {
   }).format(value);
 };
 
+const InputRow: React.FC<{
+  label: React.ReactNode;
+  ariaLabel: string;
+  value: string;
+  onChange: (e: ChangeEvent<HTMLInputElement>) => void;
+  min: number;
+  max: number;
+  step: number;
+  unit?: string;
+}> = ({ label, ariaLabel, value, onChange, min, max, step, unit }) => (
+  <div className="space-y-2">
+    <div className="flex justify-between items-center">
+      <label className="font-medium text-sm text-foreground">{label}</label>
+      <div className="relative justify-self-start">
+        {unit === '$' && <span className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground/50">$</span>}
+        <input
+          type="number"
+          value={value}
+          onChange={onChange}
+          className={`w-28 rounded-md border-surface-border bg-background py-2 pr-3 text-foreground shadow-sm focus:border-[var(--brand-purple)] focus:ring-0 ${unit === '$' ? 'pl-6' : 'pl-3'}`}
+          min={min}
+          max={max}
+          step={step}
+          aria-label={ariaLabel}
+        />
+        {unit === '%' && <span className="absolute right-3 top-1/2 -translate-y-1/2 text-foreground/50">%</span>}
+      </div>
+    </div>
+    <input
+      type="range"
+      value={value}
+      onChange={onChange}
+      min={min}
+      max={max}
+      step={step}
+      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700 accent-[var(--brand-purple)]"
+      aria-label={`${ariaLabel} range`}
+    />
+  </div>
+);
+
+const SimpleInputRow: React.FC<{
+  label: string;
+  id: string;
+  value: string;
+  onChange: (e: ChangeEvent<HTMLInputElement>) => void;
+}> = ({ label, id, value, onChange }) => (
+   <div className="flex justify-between items-center">
+      <label htmlFor={id} className="font-medium text-sm text-foreground">{label}</label>
+      <div className="relative justify-self-start">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground/50">$</span>
+          <input
+              id={id}
+              type="number"
+              value={value}
+              onChange={onChange}
+              className="w-28 rounded-md border-surface-border bg-background py-2 pl-6 pr-3 text-foreground shadow-sm focus:border-[var(--brand-purple)] focus:ring-0"
+              placeholder="0"
+              aria-label={label}
+          />
+      </div>
+  </div>
+);
+
+
 const TicketEstimator: React.FC<TicketEstimatorProps> = ({ data }) => {
   const { defaults } = data;
   
@@ -77,70 +142,6 @@ const TicketEstimator: React.FC<TicketEstimatorProps> = ({ data }) => {
     setter(e.target.value);
   };
   
-  const InputRow: React.FC<{
-    label: React.ReactNode;
-    ariaLabel: string;
-    value: string;
-    onChange: (e: ChangeEvent<HTMLInputElement>) => void;
-    min: number;
-    max: number;
-    step: number;
-    unit?: string;
-  }> = ({ label, ariaLabel, value, onChange, min, max, step, unit }) => (
-    <div className="space-y-2">
-      <div className="flex justify-between items-center">
-        <label className="font-medium text-sm text-foreground">{label}</label>
-        <div className="relative justify-self-start">
-          {unit === '$' && <span className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground/50">$</span>}
-          <input
-            type="number"
-            value={value}
-            onChange={onChange}
-            className={`w-28 rounded-md border-surface-border bg-background py-2 pr-3 text-foreground shadow-sm focus:border-[var(--brand-purple)] focus:ring-0 ${unit === '$' ? 'pl-6' : 'pl-3'}`}
-            min={min}
-            max={max}
-            step={step}
-            aria-label={ariaLabel}
-          />
-          {unit === '%' && <span className="absolute right-3 top-1/2 -translate-y-1/2 text-foreground/50">%</span>}
-        </div>
-      </div>
-      <input
-        type="range"
-        value={value}
-        onChange={onChange}
-        min={min}
-        max={max}
-        step={step}
-        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700 accent-[var(--brand-purple)]"
-        aria-label={`${ariaLabel} range`}
-      />
-    </div>
-  );
-  
-  const SimpleInputRow: React.FC<{
-    label: string;
-    id: string;
-    value: string;
-    onChange: (e: ChangeEvent<HTMLInputElement>) => void;
-  }> = ({ label, id, value, onChange }) => (
-     <div className="flex justify-between items-center">
-        <label htmlFor={id} className="font-medium text-sm text-foreground">{label}</label>
-        <div className="relative justify-self-start">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground/50">$</span>
-            <input
-                id={id}
-                type="number"
-                value={value}
-                onChange={onChange}
-                className="w-28 rounded-md border-surface-border bg-background py-2 pl-6 pr-3 text-foreground shadow-sm focus:border-[var(--brand-purple)] focus:ring-0"
-                placeholder="0"
-                aria-label={label}
-            />
-        </div>
-    </div>
-  );
-
   return (
     <div className="my-6 p-4 md:p-6 rounded-lg border border-surface-border bg-surface">
       <h3 className="text-lg font-bold text-foreground mb-1">Ticket Sale Estimator</h3>
