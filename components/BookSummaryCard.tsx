@@ -43,4 +43,42 @@ const BookSummaryCard: React.FC<BookSummaryCardProps> = ({ onActionClick, isLoad
         </div>
       </div>
       
-      <div className="p-6 grid md:grid-cols-2 gap-8"></div>
+      <div className="p-6 grid md:grid-cols-2 gap-8">
+        <div>
+            <h5 className="font-semibold text-base text-foreground mb-3">Why It Matters</h5>
+            <p className="text-sm text-foreground/80">
+                Understanding the business side is non-negotiable for career longevity. This knowledge empowers you to build the right team, negotiate fair deals, and maximize your earnings.
+            </p>
+            
+            <h5 className="font-semibold text-base text-foreground mt-6 mb-4">Further Reading & Resources</h5>
+            <div className="space-y-3">
+                <ResourceLink href="https://www.copyright.gov/" label="U.S. Copyright Office" />
+                <ResourceLink href="https://www.ascap.com/" label="ASCAP (PRO)" />
+                <ResourceLink href="https://www.bmi.com/" label="BMI (PRO)" />
+            </div>
+        </div>
+        <div>
+            <h5 className="font-semibold text-base text-foreground mb-4">Core Concepts Covered</h5>
+            <div className="space-y-4">
+                <KeyConcept icon={TeamIcon} label="Your Team (Manager, Agent, etc.)" />
+                <KeyConcept icon={RecordDealIcon} label="Record Deals & Royalties" />
+                <KeyConcept icon={CopyrightIcon} label="Copyright Law (The Basics)" />
+                <KeyConcept icon={PublishingIcon} label="Songwriting & Publishing Splits" />
+            </div>
+        </div>
+      </div>
+
+      <div className="p-4 bg-background/50 text-center mt-auto">
+         <button
+            onClick={onActionClick}
+            disabled={isLoading}
+            className="w-full sm:w-auto brand-cta text-white font-bold py-2.5 px-8 rounded-xl"
+          >
+            Ask Me to Break It Down
+          </button>
+      </div>
+    </div>
+  );
+};
+
+export default BookSummaryCard;
